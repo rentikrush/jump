@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Doodle Jump Clean</title>
+<title>Doodle Jump Fix</title>
 <style>
 body {
   margin: 0;
@@ -24,14 +24,14 @@ canvas {
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// 🎨 изображения
+// 🎨 твои файлы (КАК ЕСТЬ)
 const bg = new Image();
-const playerImg = new Image();
-const platformImg = new Image();
+bg.src = "assets/bg.JPG";
 
-// 👉 ВАЖНО: проверь пути
-bg.src = "assets/bg.jpg";
-playerImg.src = "assets/player.png";
+const playerImg = new Image();
+playerImg.src = "assets/player.PNG";
+
+const platformImg = new Image();
 platformImg.src = "assets/platform.png";
 
 // 🧍 игрок
@@ -61,25 +61,12 @@ let keys = {};
 document.addEventListener("keydown", e => keys[e.code] = true);
 document.addEventListener("keyup", e => keys[e.code] = false);
 
-// 📦 ожидание загрузки
-let loaded = 0;
-function startGame() {
-  loaded++;
-  if (loaded === 3) {
-    requestAnimationFrame(loop);
-  }
-}
-
-bg.onload = startGame;
-playerImg.onload = startGame;
-platformImg.onload = startGame;
-
 function update() {
   // движение
   if (keys["ArrowLeft"]) player.x -= 6;
   if (keys["ArrowRight"]) player.x += 6;
 
-  // телепорт по краям
+  // выход за края
   if (player.x > 400) player.x = -60;
   if (player.x < -60) player.x = 400;
 
@@ -87,8 +74,8 @@ function update() {
   player.vy += gravity;
   player.y += player.vy;
 
-  // столкновения с платформами
-  platforms.forEach(p => {
+  // коллизия с платформами
+  for (let p of platforms) {
     if (
       player.vy > 0 &&
       player.x < p.x + p.w &&
@@ -98,26 +85,26 @@ function update() {
     ) {
       player.vy = player.jump;
     }
-  });
+  }
 
-  // камера вверх
+  // камера
   if (player.y < 300) {
     platforms.forEach(p => p.y += 5);
     player.y += 5;
   }
 
   // респавн платформ
-  platforms.forEach(p => {
+  for (let p of platforms) {
     if (p.y > 700) {
       p.y = 0;
       p.x = Math.random() * 340;
     }
-  });
+  }
 }
 
 function draw() {
-  // 🌌 фон
-  if (bg.complete) {
+  // 🌌 фон (с защитой)
+  if (bg.complete && bg.naturalWidth !== 0) {
     ctx.drawImage(bg, 0, 0, 400, 700);
   } else {
     ctx.fillStyle = "#111";
@@ -125,17 +112,17 @@ function draw() {
   }
 
   // 🧱 платформы
-  platforms.forEach(p => {
-    if (platformImg.complete) {
+  for (let p of platforms) {
+    if (platformImg.complete && platformImg.naturalWidth !== 0) {
       ctx.drawImage(platformImg, p.x, p.y, p.w, p.h);
     } else {
       ctx.fillStyle = "lime";
       ctx.fillRect(p.x, p.y, p.w, p.h);
     }
-  });
+  }
 
   // 🧍 игрок
-  if (playerImg.complete) {
+  if (playerImg.complete && playerImg.naturalWidth !== 0) {
     ctx.drawImage(playerImg, player.x, player.y, player.w, player.h);
   } else {
     ctx.fillStyle = "white";
@@ -148,6 +135,9 @@ function loop() {
   draw();
   requestAnimationFrame(loop);
 }
+
+// 🚀 СТАРТ ВСЕГДА (без зависаний)
+loop();
 </script>
 
 </body>
