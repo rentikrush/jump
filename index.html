@@ -2,57 +2,78 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Doodle Jump Lite</title>
+<title>Doodle Jump Style</title>
 <style>
-  body { margin: 0; background: #111; overflow: hidden; }
-  canvas { display: block; margin: 0 auto; background: #222; }
+body {
+  margin: 0;
+  overflow: hidden;
+  background: black;
+}
+
+canvas {
+  display: block;
+  margin: 0 auto;
+}
 </style>
 </head>
+
 <body>
 
-<canvas id="game" width="400" height="600"></canvas>
+<canvas id="game" width="400" height="700"></canvas>
 
 <script>
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// игрок
+// 🎨 картинки
+const bg = new Image();
+bg.src = "assets/bg.jpg";
+
+const playerImg = new Image();
+playerImg.src = "assets/player.png";
+
+const platformImg = new Image();
+platformImg.src = "assets/platform.png";
+
+// 🧍 игрок
 let player = {
-  x: 200,
+  x: 180,
   y: 500,
-  w: 30,
-  h: 30,
+  w: 60,
+  h: 60,
   vy: 0,
-  jump: -10
+  jump: -11
 };
 
-// платформы
+// 🧱 платформы
 let platforms = [];
-for (let i = 0; i < 7; i++) {
+for (let i = 0; i < 8; i++) {
   platforms.push({
-    x: Math.random() * 370,
-    y: i * 100,
-    w: 60,
-    h: 10
+    x: Math.random() * 340,
+    y: i * 90,
+    w: 80,
+    h: 20
   });
 }
 
-let gravity = 0.4;
+let gravity = 0.45;
 let keys = {};
 
 document.addEventListener("keydown", e => keys[e.code] = true);
 document.addEventListener("keyup", e => keys[e.code] = false);
 
 function update() {
-  // движение влево-вправо
-  if (keys["ArrowLeft"]) player.x -= 5;
-  if (keys["ArrowRight"]) player.x += 5;
+  if (keys["ArrowLeft"]) player.x -= 6;
+  if (keys["ArrowRight"]) player.x += 6;
 
-  // гравитация
+  // выход за экран → с другой стороны
+  if (player.x > 400) player.x = -50;
+  if (player.x < -50) player.x = 400;
+
   player.vy += gravity;
   player.y += player.vy;
 
-  // столкновение с платформами
+  // коллизия с платформами
   platforms.forEach(p => {
     if (
       player.vy > 0 &&
@@ -65,7 +86,7 @@ function update() {
     }
   });
 
-  // бесконечный экран вверх
+  // камера вверх
   if (player.y < 300) {
     platforms.forEach(p => p.y += 5);
     player.y += 5;
@@ -73,25 +94,24 @@ function update() {
 
   // респавн платформ
   platforms.forEach(p => {
-    if (p.y > 600) {
+    if (p.y > 700) {
       p.y = 0;
-      p.x = Math.random() * 370;
+      p.x = Math.random() * 340;
     }
   });
 }
 
 function draw() {
-  ctx.clearRect(0, 0, 400, 600);
+  // 🌌 фон
+  ctx.drawImage(bg, 0, 0, 400, 700);
 
-  // игрок
-  ctx.fillStyle = "white";
-  ctx.fillRect(player.x, player.y, player.w, player.h);
-
-  // платформы
-  ctx.fillStyle = "lime";
+  // 🧱 платформы (картинкой)
   platforms.forEach(p => {
-    ctx.fillRect(p.x, p.y, p.w, p.h);
+    ctx.drawImage(platformImg, p.x, p.y, p.w, p.h);
   });
+
+  // 🧍 игрок
+  ctx.drawImage(playerImg, player.x, player.y, player.w, player.h);
 }
 
 function loop() {
