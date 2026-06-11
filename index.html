@@ -2,14 +2,13 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Doodle Jump Style</title>
+<title>Doodle Jump Clean</title>
 <style>
 body {
   margin: 0;
   overflow: hidden;
   background: black;
 }
-
 canvas {
   display: block;
   margin: 0 auto;
@@ -25,14 +24,14 @@ canvas {
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// 🎨 картинки
+// 🎨 изображения
 const bg = new Image();
-bg.src = "assets/bg.jpg";
-
 const playerImg = new Image();
-playerImg.src = "assets/player.png";
-
 const platformImg = new Image();
+
+// 👉 ВАЖНО: проверь пути
+bg.src = "assets/bg.jpg";
+playerImg.src = "assets/player.png";
 platformImg.src = "assets/platform.png";
 
 // 🧍 игрок
@@ -62,18 +61,33 @@ let keys = {};
 document.addEventListener("keydown", e => keys[e.code] = true);
 document.addEventListener("keyup", e => keys[e.code] = false);
 
+// 📦 ожидание загрузки
+let loaded = 0;
+function startGame() {
+  loaded++;
+  if (loaded === 3) {
+    requestAnimationFrame(loop);
+  }
+}
+
+bg.onload = startGame;
+playerImg.onload = startGame;
+platformImg.onload = startGame;
+
 function update() {
+  // движение
   if (keys["ArrowLeft"]) player.x -= 6;
   if (keys["ArrowRight"]) player.x += 6;
 
-  // выход за экран → с другой стороны
-  if (player.x > 400) player.x = -50;
-  if (player.x < -50) player.x = 400;
+  // телепорт по краям
+  if (player.x > 400) player.x = -60;
+  if (player.x < -60) player.x = 400;
 
+  // гравитация
   player.vy += gravity;
   player.y += player.vy;
 
-  // коллизия с платформами
+  // столкновения с платформами
   platforms.forEach(p => {
     if (
       player.vy > 0 &&
@@ -103,15 +117,30 @@ function update() {
 
 function draw() {
   // 🌌 фон
-  ctx.drawImage(bg, 0, 0, 400, 700);
+  if (bg.complete) {
+    ctx.drawImage(bg, 0, 0, 400, 700);
+  } else {
+    ctx.fillStyle = "#111";
+    ctx.fillRect(0, 0, 400, 700);
+  }
 
-  // 🧱 платформы (картинкой)
+  // 🧱 платформы
   platforms.forEach(p => {
-    ctx.drawImage(platformImg, p.x, p.y, p.w, p.h);
+    if (platformImg.complete) {
+      ctx.drawImage(platformImg, p.x, p.y, p.w, p.h);
+    } else {
+      ctx.fillStyle = "lime";
+      ctx.fillRect(p.x, p.y, p.w, p.h);
+    }
   });
 
   // 🧍 игрок
-  ctx.drawImage(playerImg, player.x, player.y, player.w, player.h);
+  if (playerImg.complete) {
+    ctx.drawImage(playerImg, player.x, player.y, player.w, player.h);
+  } else {
+    ctx.fillStyle = "white";
+    ctx.fillRect(player.x, player.y, player.w, player.h);
+  }
 }
 
 function loop() {
@@ -119,8 +148,6 @@ function loop() {
   draw();
   requestAnimationFrame(loop);
 }
-
-loop();
 </script>
 
 </body>
